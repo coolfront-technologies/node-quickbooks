@@ -40,7 +40,7 @@ QuickBooks.QUERY_OPERATORS            = ['=', 'IN', '<', '>', '<=', '>=', 'LIKE'
  * @param requestLogFunc - optional function for custom logging of request debug output
  * @constructor
  */
-function QuickBooks(consumerKey, consumerSecret, token, tokenSecret, realmId, useSandbox, debug, logFunc) {
+function QuickBooks(consumerKey, consumerSecret, token, tokenSecret, realmId, useSandbox, debug, logFunc, requestLogFunc) {
   var prefix           = _.isObject(consumerKey) ? 'consumerKey.' : ''
   this.consumerKey     = eval(prefix + 'consumerKey')
   this.consumerSecret  = eval(prefix + 'consumerSecret')
