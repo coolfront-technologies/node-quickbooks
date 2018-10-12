@@ -96,9 +96,11 @@ QuickBooks.setOauthVersion('1.0');
  * @param useSandbox - boolean - See https://developer.intuit.com/v2/blog/2014/10/24/intuit-developer-now-offers-quickbooks-sandboxes
  * @param debug - boolean flag to turn on logging of HTTP requests, including headers and body
  * @param minorversion - integer to set minorversion in request
+ * @param logFunc - optional function for custom logging console output
+ * @param requestLogFunc - optional function for custom logging of request debug output
  * @constructor
  */
-function QuickBooks(consumerKey, consumerSecret, token, tokenSecret, realmId, useSandbox, debug, minorversion, oauthversion, refreshToken) {
+function QuickBooks(consumerKey, consumerSecret, token, tokenSecret, realmId, useSandbox, debug, minorversion, oauthversion, refreshToken, logFunc, requestLogFunc) {
   var prefix = _.isObject(consumerKey) ? 'consumerKey.' : '';
   this.consumerKey = eval(prefix + 'consumerKey');
   this.consumerSecret = eval(prefix + 'consumerSecret');
@@ -116,6 +118,10 @@ function QuickBooks(consumerKey, consumerSecret, token, tokenSecret, realmId, us
   if (!eval(prefix + 'tokenSecret') && this.oauthversion !== '2.0') {
     throw new Error('tokenSecret not defined');
   }
+  
+  this.logFunc         = _.isFunction(logFunc) ? logFunc : console.log
+  this.requestLogFunc  = _.isFunction(requestLogFunc) ? requestLogFunc : undefined
+ 
 }
 
 /**
@@ -2238,14 +2244,14 @@ module.request = function(context, verb, options, entity, callback) {
   if (options.formData) {
     opts.formData = options.formData
   }
-  if ('production' !== process.env.NODE_ENV && context.debug) {
-    debug(request)
+  if ( ('production' !== process.env.NODE_ENV || process.env.GLOBAL_PROD_DEBUG_ENABLED) && context.debug) {
+    debug(request, context.requestLogFunc)
   }
   request[verb].call(context, opts, function (err, res, body) {
-    if ('production' !== process.env.NODE_ENV && context.debug) {
-      console.log('invoking endpoint: ' + url)
-      console.log(entity || '')
-      console.log(JSON.stringify(body, null, 2));
+    if (('production' !== process.env.NODE_ENV || process.env.GLOBAL_PROD_DEBUG_ENABLED) && context.debug) {
+      context.logFunc('invoking endpoint: ' + url)
+      context.logFunc(entity || '')
+      context.logFunc(JSON.stringify(body, null, 2));
     }
     if (callback) {
       if (err ||
