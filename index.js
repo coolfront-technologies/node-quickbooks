@@ -49,9 +49,10 @@ function QuickBooks(consumerKey, consumerSecret, token, tokenSecret, realmId, us
   this.realmId         = eval(prefix + 'realmId')
   this.useSandbox      = eval(prefix + 'useSandbox')
   this.debug           = eval(prefix + 'debug')
-  this.logFunc         = logFunc || console.log
-  this.requestLogFunc  = requestLogFunc
+  this.logFunc         = _.isFunction(logFunc) ? logFunc : console.log
+  this.requestLogFunc  = _.isFunction(requestLogFunc) ? requestLogFunc : undefined
   this.endpoint        = this.useSandbox ? QuickBooks.V3_ENDPOINT_BASE_URL : QuickBooks.V3_ENDPOINT_BASE_URL.replace('sandbox-', '')
+
 }
 
 /**
