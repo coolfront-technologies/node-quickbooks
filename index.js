@@ -1977,11 +1977,11 @@ module.request = function(context, verb, options, entity, callback) {
   if (options.formData) {
     opts.formData = options.formData
   }
-  if ( ('production' !== process.env.NODE_ENV || process.env.ALLOW_DEBUG) && context.debug) {
+  if ( ('production' !== process.env.NODE_ENV || process.env.GLOBAL_PROD_DEBUG_ENABLED) && context.debug) {
     debug(request, context.requestLogFunc)
   }
   request[verb].call(context, opts, function (err, res, body) {
-    if (('production' !== process.env.NODE_ENV || process.env.ALLOW_DEBUG) && context.debug) {
+    if (('production' !== process.env.NODE_ENV || process.env.GLOBAL_PROD_DEBUG_ENABLED) && context.debug) {
       context.logFunc('invoking endpoint: ' + url)
       context.logFunc(entity || '')
       context.logFunc(JSON.stringify(body, null, 2));
