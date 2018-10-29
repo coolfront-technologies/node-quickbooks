@@ -36,9 +36,11 @@ QuickBooks.QUERY_OPERATORS            = ['=', 'IN', '<', '>', '<=', '>=', 'LIKE'
  * @param realmId - QuickBooks companyId, returned as a request parameter when the user is redirected to the provided callback URL following authentication
  * @param useSandbox - boolean - See https://developer.intuit.com/v2/blog/2014/10/24/intuit-developer-now-offers-quickbooks-sandboxes
  * @param debug - boolean flag to turn on logging of HTTP requests, including headers and body
+ * @param logFunc - optional function for custom logging console output
+ * @param requestLogFunc - optional function for custom logging of request debug output
  * @constructor
  */
-function QuickBooks(consumerKey, consumerSecret, token, tokenSecret, realmId, useSandbox, debug) {
+function QuickBooks(consumerKey, consumerSecret, token, tokenSecret, realmId, useSandbox, debug, logFunc, requestLogFunc) {
   var prefix           = _.isObject(consumerKey) ? 'consumerKey.' : ''
   this.consumerKey     = eval(prefix + 'consumerKey')
   this.consumerSecret  = eval(prefix + 'consumerSecret')
@@ -47,7 +49,10 @@ function QuickBooks(consumerKey, consumerSecret, token, tokenSecret, realmId, us
   this.realmId         = eval(prefix + 'realmId')
   this.useSandbox      = eval(prefix + 'useSandbox')
   this.debug           = eval(prefix + 'debug')
+  this.logFunc         = _.isFunction(logFunc) ? logFunc : console.log
+  this.requestLogFunc  = _.isFunction(requestLogFunc) ? requestLogFunc : undefined
   this.endpoint        = this.useSandbox ? QuickBooks.V3_ENDPOINT_BASE_URL : QuickBooks.V3_ENDPOINT_BASE_URL.replace('sandbox-', '')
+
 }
 
 /**
@@ -1973,14 +1978,14 @@ module.request = function(context, verb, options, entity, callback) {
   if (options.formData) {
     opts.formData = options.formData
   }
-  if ('production' !== process.env.NODE_ENV && context.debug) {
-    debug(request)
+  if ( ('production' !== process.env.NODE_ENV || process.env.GLOBAL_PROD_DEBUG_ENABLED) && context.debug) {
+    debug(request, context.requestLogFunc)
   }
   request[verb].call(context, opts, function (err, res, body) {
-    if ('production' !== process.env.NODE_ENV && context.debug) {
-      console.log('invoking endpoint: ' + url)
-      console.log(entity || '')
-      console.log(JSON.stringify(body, null, 2));
+    if (('production' !== process.env.NODE_ENV || process.env.GLOBAL_PROD_DEBUG_ENABLED) && context.debug) {
+      context.logFunc('invoking endpoint: ' + url)
+      context.logFunc(entity || '')
+      context.logFunc(JSON.stringify(body, null, 2));
     }
     if (callback) {
       if (err ||
